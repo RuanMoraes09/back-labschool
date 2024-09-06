@@ -31,7 +31,7 @@ module.exports = {
 
             let alunoValid = await alunoService.getAlunoById(id)
 
-            if (alunoValid.lenght == 0) {
+            if (alunoValid.length == 0) {
 
                 json.error = "Aluno não encontrado!"
                 response.status(404).json(json)
@@ -47,8 +47,7 @@ module.exports = {
         }
     },
 
-    // Metódo para criar um novo aluno
-
+    // Método para criar um novo aluno
     saveAluno: async (request, response) => {
 
         let json = { error: "", result: "" }
@@ -63,8 +62,41 @@ module.exports = {
         let aluno = await alunoService.createAluno(foto, nome, telefone, email, data_nascimento, curso)
 
         json.result = `Aluno: ${nome} cadastrado com sucesso! ID: { ${aluno.insertId}}`
+        response.status(201).json(json)
     },
 
+    // Método para atualizar um aluno
+    updateAluno: async (request, response) => {
+        let json = { error: "", result: "" }
+        let id = request.params.id
+        const { nome, telefone, email, data_nascimento, curso } = request.body
+        let foto = request.file ? request.file.buffer : null
+
+        if (id) {
+
+            let alunoValid = await alunoService.getAlunoById(id)
+
+            if (alunoValid.length == 0) {
+                json.error = "Aluno não encontrado!"
+                response.status(404).json(json)
+            } else {
+                try {
+                    await alunoService.updateAluno(id, nome, telefone, email, data_nascimento, curso, foto)
+                    json.result = `Aluno ${nome} atualizado com sucesso!`
+                    response.status(200).json(json)
+                } catch (err) {
+                    json.error = "Erro ao atualizar aluno!"
+                    response.status(500).json(json)
+                }
+            }
+
+        } else {
+            json.error = "Id do aluno é obrigatório"
+            response.status(400).json(json)
+        }
+    },
+
+    // Método para deletar aluno
     deleteAluno: async (request, response) => {
         let json = { error: "", result: "" }
         let id = request.params.id
@@ -73,13 +105,14 @@ module.exports = {
 
             let alunoValid = await alunoService.getAlunoById(id)
 
-            if (alunoValid.lenght == 0) {
+            if (alunoValid.length == 0) {
 
                 json.error = "Aluno não encontrado!"
                 response.status(404).json(json)
             } else {
 
-                json.result = `Aluno ${alunoValid[0].nome} excluido com sucesso`
+                await alunoService.deleteAluno(id)
+                json.result = `Aluno ${alunoValid[0].nome} excluído com sucesso`
                 response.status(200).json(json)
             }
 
